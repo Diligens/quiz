@@ -1,9 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { BrowserRouter, Route } from 'react-router-dom';
 import './index.css';
 import Quiz from './Quiz';
 import * as serviceWorker from './serviceWorker';
 import { shuffle, sample } from 'underscore';
+
 
 const authors = [
     {
@@ -72,8 +74,28 @@ function onAnswerSelected(answer) {
     render();
 }
 
+function AddForm({match}) {
+    return (
+        <div>
+            <h1>Add Author</h1>
+            <p>{JSON.stringify(match)}</p>
+        </div> 
+    )
+}
+
+function App() {
+    return <Quiz {...state} onAnswerSelected={onAnswerSelected}/>
+}
+
 function render(){
-    ReactDOM.render(<Quiz {...state} onAnswerSelected={onAnswerSelected}/>, document.getElementById('root'));
+    ReactDOM.render(
+        <BrowserRouter>
+            <React.Fragment>
+                <Route exact path="/" component={App}/>
+                <Route path="/add" component={AddForm}/>
+            </React.Fragment>
+        </BrowserRouter>
+    , document.getElementById('root'));
 }
 
 render();
