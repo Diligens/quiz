@@ -1,8 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter, Route } from 'react-router-dom';
+import { BrowserRouter, Route, withRouter } from 'react-router-dom';
 import './index.css';
 import Quiz from './Quiz';
+import AddForm from './AddForm';
 import * as serviceWorker from './serviceWorker';
 import { shuffle, sample } from 'underscore';
 
@@ -63,10 +64,14 @@ function getTurnData(authors) {
     }
 }
 
-const state = {
-    turnData: getTurnData(authors),
-    highlight: ''
+function resetState() {
+    return {
+        turnData: getTurnData(authors),
+        highlight: ''
+    }
 }
+
+let state = resetState();
 
 function onAnswerSelected(answer) {
     const isCorrect = state.turnData.author.books.some((book) => book === answer);
@@ -74,25 +79,30 @@ function onAnswerSelected(answer) {
     render();
 }
 
-function AddForm({match}) {
-    return (
-        <div>
-            <h1>Add Author</h1>
-            <p>{JSON.stringify(match)}</p>
-        </div> 
-    )
+function App() {
+    return <Quiz 
+        {...state} 
+        onAnswerSelected={onAnswerSelected}
+        onContinue={() => {
+            state = resetState();
+            render();
+        }}/>;
 }
 
-function App() {
-    return <Quiz {...state} onAnswerSelected={onAnswerSelected}/>
-}
+const AuthorWrapper = withRouter(({ history }) => 
+    <AddForm onAddAuthor={(author) => {
+        authors.push(author);
+        history.push('/');
+    }}/>
+);
+
 
 function render(){
     ReactDOM.render(
         <BrowserRouter>
             <React.Fragment>
                 <Route exact path="/" component={App}/>
-                <Route path="/add" component={AddForm}/>
+                <Route path="/add" component={AuthorWrapper}/>
             </React.Fragment>
         </BrowserRouter>
     , document.getElementById('root'));
