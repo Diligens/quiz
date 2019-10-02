@@ -1,4 +1,6 @@
 import React from 'react';
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
 import './AddForm.css';
 
 class AuthorForm extends React.Component {
@@ -60,13 +62,24 @@ class AuthorForm extends React.Component {
     }
 }
 
-function AddForm({match, onAddAuthor}) {
+function AddForm({ match, onAddAuthor }) {
     return (
         <div className="add_form">
             <h1>Add Author</h1>
-            <AuthorForm onAddAuthor={onAddAuthor}/>
-        </div> 
-    )
+            <AuthorForm onAddAuthor={onAddAuthor} />
+        </div>
+    );
 }
 
-export default AddForm
+function mapDispatchToProps(dispatch, props) {
+    return ({
+        onAddAuthor: (author) => {
+            dispatch({ type: 'ADD_AUTHOR', author });
+            props.history.push('/');
+        }
+    });
+}
+
+export default withRouter(
+    connect(() => {}, mapDispatchToProps)(AddForm)
+);

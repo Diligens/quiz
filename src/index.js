@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter, Route, withRouter } from 'react-router-dom';
+import { BrowserRouter, Route } from 'react-router-dom';
+import * as Redux from 'redux';
+import * as ReactRedux from 'react-redux';
 import './index.css';
 import Quiz from './Quiz';
 import AddForm from './AddForm';
@@ -64,50 +66,46 @@ function getTurnData(authors) {
     }
 }
 
-function resetState() {
-    return {
-        turnData: getTurnData(authors),
-        highlight: ''
-    }
-}
+function reducer(
+    state = { authors, turnData: getTurnData(authors), highlight: '' }, 
+    action) {
+      switch (action.type) {
+        case 'ANSWER_SELECTED':
+          const isCorrect = state.turnData.author.books.some((book) => book === action.answer);
+          return Object.assign(
+            {}, 
+            state, { 
+              highlight: isCorrect ? 'correct' : 'wrong'
+            });
+        case 'CONTINUE': 
+            return Object.assign({}, state, { 
+              highlight: '',
+              turnData: getTurnData(state.authors)
+            });
+        case 'ADD_AUTHOR':
+            return Object.assign({}, state, {
+              authors: state.authors.concat([action.author])
+            });
+        default: return state;
+      }
+  }
 
-let state = resetState();
-
-function onAnswerSelected(answer) {
-    const isCorrect = state.turnData.author.books.some((book) => book === answer);
-    state.highlight = isCorrect ? 'correct' : 'wrong';
-    render();
-}
-
-function App() {
-    return <Quiz 
-        {...state} 
-        onAnswerSelected={onAnswerSelected}
-        onContinue={() => {
-            state = resetState();
-            render();
-        }}/>;
-}
-
-const AuthorWrapper = withRouter(({ history }) => 
-    <AddForm onAddAuthor={(author) => {
-        authors.push(author);
-        history.push('/');
-    }}/>
-);
-
+let store = Redux.createStore(
+    reducer,
+    window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+  );
 
 function render(){
     ReactDOM.render(
-        <BrowserRouter>
+    <BrowserRouter>
+      <ReactRedux.Provider store={store}>
             <React.Fragment>
-                <Route exact path="/" component={App}/>
-                <Route path="/add" component={AuthorWrapper}/>
+                <Route exact path="/" component={Quiz} />
+                <Route path="/add" component={AddForm} />
             </React.Fragment>
-        </BrowserRouter>
-    , document.getElementById('root'));
+     </ReactRedux.Provider>
+    </BrowserRouter>, document.getElementById('root'));
 }
-
 render();
 
 // If you want your app to work offline and load faster, you can change
